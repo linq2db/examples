@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HowToUseOldVersion", "HowToUseOldVersion.csproj", "{A7F3F8DC-3D20-42C7-99DA-17C371A349EE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A7F3F8DC-3D20-42C7-99DA-17C371A349EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7F3F8DC-3D20-42C7-99DA-17C371A349EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7F3F8DC-3D20-42C7-99DA-17C371A349EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7F3F8DC-3D20-42C7-99DA-17C371A349EE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

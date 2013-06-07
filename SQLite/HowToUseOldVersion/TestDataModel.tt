@@ -1,0 +1,12 @@
+﻿<#@ template language="C#" debug="True" hostSpecific="True"                       #>
+<#@ output extension=".generated.cs"                                              #>
+<#@ assembly name="$(ProjectDir)Redist\System.Data.SQLite.dll"                    #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\LinqToDB.Tools.ttinclude"       #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\LinqToDB.SQLite.ttinclude"      #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\PluralizationService.ttinclude" #>
+<#
+	NamespaceName = "HowToUseOldVersion";
+
+	LoadSQLiteMetadata(@"", "TestData.sqlite");
+	GenerateModel();
+#>

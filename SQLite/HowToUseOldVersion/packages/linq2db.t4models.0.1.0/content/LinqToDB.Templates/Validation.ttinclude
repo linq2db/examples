@@ -1,0 +1,96 @@
+<#
+	{
+		var beforeGenerateModel = BeforeGenerateModel;
+		BeforeGenerateModel = () =>
+		{
+			beforeGenerateModel();
+			ValidationImpl();
+		};
+	}
+#>
+<#+
+void ValidationImpl()
+{
+	foreach (Class cl in GetTreeNodes(Model).OfType<Class>())
+	{
+		var validationGroup = new MemberGroup
+		{
+			Region = "Validation",
+		};
+
+		var props = GetTreeNodes(cl).OfType<Property>().Where(p => p.CustomValidation).ToList();
+
+		if (props.Count > 0)
+		{
+			var isValid   = new Method("bool", "IsValid", new[] { cl.Name + " obj" }) { IsStatic = true };
+			var validator = new Class("CustomValidator", isValid) { IsStatic = true, };
+			
+			isValid.Comment.Add(" The following method(s) must be implemented:");
+			isValid.Body.   Add("return");
+
+			validationGroup.Members.Add(validator);
+
+			foreach (var p in props)
+			{
+				var mname = "Validate" + p.Name.Trim();
+
+				cl.Attributes.Add(
+					new Attribute("CustomValidation",
+						"typeof(" + cl.Name + ".CustomValidator)",
+						"\"" + mname + "\"")
+						{
+							IsSeparated = true
+						});
+
+				isValid.Comment.Add(" public static ValidationResult " + mname + "(" + cl.Name + " obj) { return ValidationResult.Success; }");
+				isValid.Body.   Add("\t" + mname + "(obj) == ValidationResult.Success &&");
+			}
+
+			var lastLine = isValid.Body[isValid.Body.Count - 1];
+			isValid.Body[isValid.Body.Count - 1] = lastLine.Substring(0, lastLine.Length - 3) + ";";
+			
+			isValid.Comment.Add("");
+		}
+
+		props = GetTreeNodes(cl).OfType<Property>().Where(p => p.ValidateProperty && p.HasSetter).ToList();
+
+		if (props.Count > 0)
+		{
+			foreach (var p in props)
+			{
+				if (p.SetBody.Count > 0)
+					p.SetBody.Insert(0, "");
+
+				p.SetBody.Insert(0, "if (_validationLockCounter == 0)");
+				p.SetBody.Insert(1, "\tValidator.ValidateProperty(");
+				p.SetBody.Insert(2, "\t\tvalue,");
+				p.SetBody.Insert(3, string.Format("\t\tnew ValidationContext(this, null, null) {{ MemberName = NameOf{0} }});", p.Name.Trim()));
+			}
+
+			validationGroup.Members.Add(new Field("int", "_validationLockCounter")
+			{
+				AccessModifier = AccessModifier.Private,
+				InitValue      = "0",
+			});
+
+			validationGroup.Members.Add(new Method ("void", "LockValidation",   null, new[] { "_validationLockCounter++;" }));
+			validationGroup.Members.Add(new Method ("void", "UnlockValidation", null, new[] { "_validationLockCounter--;" }));
+		}
+
+		if (validationGroup.Members.Count > 0)
+		{
+			if (!Model.Usings.Contains("System.ComponentModel.DataAnnotations"))
+				Model.Usings.Add("System.ComponentModel.DataAnnotations");
+
+			cl.Members.Add(validationGroup);
+			cl.SetTree();
+		}
+	}
+}
+
+partial class Property
+{
+	public bool CustomValidation;
+	public bool ValidateProperty;
+}
+#>
