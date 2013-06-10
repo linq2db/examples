@@ -1,2 +1,2 @@
-﻿1. Install the linq2db.SQLite nuget.
-2. Open LinqToDB.Templates\CopyMe.SQLite.tt.txt and follow the instructions inside the file.
+﻿1. Install the linq2db.Access nuget.
+2. Open LinqToDB.Templates\CopyMe.Access.tt.txt and follow the instructions inside the file.
