@@ -53,13 +53,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="DataModels\DataTest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>DataTest.generated.cs</LastGenOutput>
     </None>
     <Content Include="LinqToDB.Templates\CopyMe.Access.tt.txt" />
-    <Content Include="README.txt" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LinqToDB.Templates\DataAnnotations.ttinclude" />
