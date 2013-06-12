@@ -80,7 +80,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="README.txt" />
+    <None Include="README.md" />
     <None Include="DataModels\Northwind.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Northwind1.generated.cs</LastGenOutput>
