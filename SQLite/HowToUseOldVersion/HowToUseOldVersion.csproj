@@ -87,7 +87,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="README.txt" />
+    <None Include="README.md" />
     <Content Include="x64\SQLite.Interop.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
