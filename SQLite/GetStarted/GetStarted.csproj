@@ -61,7 +61,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="README.txt" />
+    <None Include="README.md" />
     <None Include="App.config" />
     <None Include="DataModels\TestData.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
