@@ -44,10 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataModels\DataTest.generated.cs">
+    <Compile Include="DataModels\TestData.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>DataTest.tt</DependentUpon>
+      <DependentUpon>TestData.tt</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -56,9 +56,9 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="DataModels\DataTest.tt">
+    <None Include="DataModels\TestData.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DataTest.generated.cs</LastGenOutput>
+      <LastGenOutput>TestData.generated.cs</LastGenOutput>
     </None>
     <Content Include="LinqToDB.Templates\CopyMe.Access.tt.txt" />
     <None Include="README.md" />
