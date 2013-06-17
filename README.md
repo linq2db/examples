@@ -6,6 +6,11 @@ Access
 * [GetStarted](https://github.com/linq2db/examples/tree/master/Access/GetStarted).
    Get started with LINQ to Access.
 
+SqlCe
+-----
+* [GetStarted](https://github.com/linq2db/examples/tree/master/SqlCe/GetStarted).
+   Get started with LINQ to SqlCe.
+
 SQLite
 ------
 * [GetStarted](https://github.com/linq2db/examples/tree/master/SQLite/GetStarted).
