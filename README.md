@@ -6,6 +6,11 @@ Access
 * [GetStarted](https://github.com/linq2db/examples/tree/master/Access/GetStarted).
    Get started with LINQ to Access.
 
+Firebird
+--------
+* [GetStarted](https://github.com/linq2db/examples/tree/master/Firebird/GetStarted).
+   Get started with LINQ to Firebird.
+
 SqlCe
 -----
 * [GetStarted](https://github.com/linq2db/examples/tree/master/SqlCe/GetStarted).
