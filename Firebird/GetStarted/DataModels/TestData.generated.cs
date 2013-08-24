@@ -170,10 +170,10 @@ namespace DataModel
 		#region Associations
 
 		/// <summary>
-		/// INTEG_8267
+		/// INTEG_8158
 		/// </summary>
 		[Association(ThisKey="PERSONID", OtherKey="PERSONID", CanBeNull=false)]
-		public PERSON INTEG8267 { get; set; }
+		public PERSON INTEG8158 { get; set; }
 
 		#endregion
 	}
@@ -196,10 +196,10 @@ namespace DataModel
 		public IEnumerable<DOCTOR> DOCTORs { get; set; }
 
 		/// <summary>
-		/// INTEG_8267_BackReference
+		/// INTEG_8158_BackReference
 		/// </summary>
 		[Association(ThisKey="PERSONID", OtherKey="PERSONID", CanBeNull=false)]
-		public IEnumerable<PATIENT> INTEG8267 { get; set; }
+		public IEnumerable<PATIENT> INTEG8158 { get; set; }
 
 		#endregion
 	}
