@@ -32,8 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="linq2db">
-      <HintPath>packages\linq2db.0.1.1\lib\net40\linq2db.dll</HintPath>
+    <Reference Include="linq2db, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>packages\linq2db.1.0.0\lib\net40\linq2db.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -66,6 +67,7 @@
     <None Include="LinqToDB.Templates\LinqToDB.Access.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.DB2.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Firebird.ttinclude" />
+    <None Include="LinqToDB.Templates\LinqToDB.Informix.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.MySql.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.Oracle.ttinclude" />
     <None Include="LinqToDB.Templates\LinqToDB.PostgreSQL.ttinclude" />
@@ -88,10 +90,12 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TestData.generated.cs</LastGenOutput>
     </None>
-    <Content Include="LinqToDB.Templates\CopyMe.SqlCe.tt.txt" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LinqToDB.Templates\CopyMe.SqlCe.tt.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
