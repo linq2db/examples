@@ -34,7 +34,7 @@
   <ItemGroup>
     <Reference Include="linq2db, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\linq2db.1.0.0\lib\net40\linq2db.dll</HintPath>
+      <HintPath>packages\linq2db.1.0.1.1\lib\net40\linq2db.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
