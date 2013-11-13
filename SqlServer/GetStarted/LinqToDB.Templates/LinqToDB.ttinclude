@@ -8,7 +8,11 @@
 #>
 <#+
 Action BeforeGenerateLinqToDBModel = () => {};
-Action AfterGenerateLinqToDBModel = () => {};
+Action AfterGenerateLinqToDBModel  = () => {};
+
+bool GenerateObsoleteAttributeForAliases;
+bool IsCompactColumns       = true;
+bool IsCompactColumnAliases = true;
 
 void GenerateTypesFromMetadata()
 {
@@ -20,7 +24,8 @@ void GenerateTypesFromMetadata()
 	if (NamespaceName == null)
 		NamespaceName = "DataModel";
 
-	var props = new MemberGroup { IsCompact = true };
+	var props   = new MemberGroup { IsCompact = true };
+	var aliases = new MemberGroup { IsCompact = true, Region = "Alias members" };
 
 	if (GenerateConstructors)
 	{
@@ -44,6 +49,22 @@ void GenerateTypesFromMetadata()
 
 		props.Members.Add(dcProp);
 
+		Property aProp = null;
+
+		if (t.AliasPropertyName != null && t.AliasPropertyName != t.DataContextPropertyName)
+		{
+			aProp = new Property(
+				string.Format("ITable<{0}>", t.TypeName),
+				t.AliasPropertyName,
+				new[] { t.DataContextPropertyName },
+				null);
+			
+			if (GenerateObsoleteAttributeForAliases)
+				aProp.Attributes.Add(new Attribute("Obsolete", "\"Use " + t.DataContextPropertyName + " instead.\""));
+
+			aliases.Members.Add(aProp);
+		}
+
 		var tableAttrs = new List<string>();
 
 		if (DatabaseName != null) tableAttrs.Add("Database=" + '"' + DatabaseName + '"');
@@ -56,19 +77,29 @@ void GenerateTypesFromMetadata()
 		if (t.IsView)
 			t.Comment.Add(" View");
 
+		var comments = new List<string>();
+
 		if (!string.IsNullOrWhiteSpace(t.Description))
 		{
-			t.     Comment.Add("/ <summary>");
-			t.     Comment.Add("/ " + t.Description);
-			t.     Comment.Add("/ </summary>");
-			dcProp.Comment.Add("/ <summary>");
-			dcProp.Comment.Add("/ " + t.Description);
-			dcProp.Comment.Add("/ </summary>");
+			comments.Add("/ <summary>");
+			foreach (var line in t.Description.Split('\n'))
+				comments.Add("/ " + line.TrimEnd());
+			comments.Add("/ </summary>");
 		}
 
-		var columns     = new MemberGroup { IsCompact = true };
-		var nPKs        = t.Columns.Values.Count(c => c.IsPrimaryKey);
-		var allNullable = t.Columns.Values.All  (c => c.IsNullable || c.IsIdentity);
+		if (comments.Count > 0)
+		{
+			t.     Comment.AddRange(comments);
+			dcProp.Comment.AddRange(comments);
+
+			if (aProp != null)
+				aProp.Comment.AddRange(comments);
+		}
+
+		var columns       = new MemberGroup { IsCompact = IsCompactColumns };
+		var columnAliases = new MemberGroup { IsCompact = IsCompactColumnAliases, Region = "Alias members" };
+		var nPKs          = t.Columns.Values.Count(c => c.IsPrimaryKey);
+		var allNullable   = t.Columns.Values.All  (c => c.IsNullable || c.IsIdentity);
 
 		foreach (var c in t.Columns.Values)
 		{
@@ -135,12 +166,18 @@ void GenerateTypesFromMetadata()
 			else if (!c.IsIdentity)
 				c.Attributes.Add(new Attribute("NotNull"));
 
+			var columnComments = new List<string>();
+
 			if (!string.IsNullOrWhiteSpace(c.Description))
 			{
-				c.Comment.Add("/ <summary>");
-				c.Comment.Add("/ " + c.Description);
-				c.Comment.Add("/ </summary>");
+				columnComments.Add("/ <summary>");
+				foreach (var line in c.Description.Split('\n'))
+					columnComments.Add("/ " + line.TrimEnd());
+				columnComments.Add("/ </summary>");
 			}
+
+			if (columnComments.Count > 0)
+				c.Comment.AddRange(columnComments);
 
 			// End line comment.
 			//
@@ -150,9 +187,32 @@ void GenerateTypesFromMetadata()
 			SetPropertyValue(c, "IsEditable",  true);
 
 			columns.Members.Add(c);
+
+			// Alias.
+			//
+			if (c.AliasName != null && c.AliasName != c.MemberName)
+			{
+				var caProp = new Property(
+					c.Type,
+					c.AliasName,
+					new[] { c.MemberName },
+					new[] { c.MemberName + " = value;"});
+
+				caProp.Comment.AddRange(columnComments);
+
+				if (GenerateObsoleteAttributeForAliases)
+					caProp.Attributes.Add(new Attribute("Obsolete", "\"Use " + c.MemberName + " instead.\""));
+
+				caProp.Attributes.Add(new Attribute("ColumnAlias", "\"" + c.MemberName + "\""));
+
+				columnAliases.Members.Add(caProp);
+			}
 		}
 
 		t.Members.Add(columns);
+
+		if (columnAliases.Members.Count > 0)
+			t.Members.Add(columnAliases);
 
 		if (GenerateAssociations)
 		{
@@ -195,7 +255,26 @@ void GenerateTypesFromMetadata()
 		}
 
 		Model.Types.Add(t);
+
+		if (!string.IsNullOrWhiteSpace(t.AliasTypeName))
+		{
+			var aClass = new Class(t.AliasTypeName)
+			{
+				BaseClass = t.TypeName
+			};
+
+			if (comments.Count > 0)
+				aClass.Comment.AddRange(comments);
+
+			if (GenerateObsoleteAttributeForAliases)
+				aClass.Attributes.Add(new Attribute("Obsolete", "\"Use " + t.TypeName + " instead.\""));
+
+			Model.Types.Add(aClass);
+		}
 	}
+
+	if (aliases.Members.Count > 0)
+		DataContextObject.Members.Add(aliases);
 
 	if (Procedures.Count > 0)
 	{
@@ -255,11 +334,11 @@ void GenerateTypesFromMetadata()
 			else
 			{
 				var spName = "\"" + 
-					SqlProvider.BuildTableName(
+					SqlBuilder.BuildTableName(
 						new System.Text.StringBuilder(),
-						(string)SqlProvider.Convert(DatabaseName,    LinqToDB.SqlProvider.ConvertType.NameToDatabase),
-						(string)SqlProvider.Convert(p.Schema,        LinqToDB.SqlProvider.ConvertType.NameToOwner),
-						(string)SqlProvider.Convert(p.ProcedureName, LinqToDB.SqlProvider.ConvertType.NameToQueryTable)
+						(string)SqlBuilder.Convert(DatabaseName,    LinqToDB.SqlProvider.ConvertType.NameToDatabase),
+						(string)SqlBuilder.Convert(p.Schema,        LinqToDB.SqlProvider.ConvertType.NameToOwner),
+						(string)SqlBuilder.Convert(p.ProcedureName, LinqToDB.SqlProvider.ConvertType.NameToQueryTable)
 					).ToString() +
 					 "\"";
 
