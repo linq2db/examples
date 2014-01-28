@@ -6,5 +6,9 @@
 	NamespaceName = "DataModel";
 
 	LoadPostgreSQLMetadata("DBHost", "5432", "TestData", "postgres", "TestPassword");
+
+	GetTable("test_schema.testsamename").TypeName                = "TestSchema_testsameName";
+	GetTable("test_schema.testsamename").DataContextPropertyName = "TestSchema_testsameName";
+
 	GenerateModel();
 #>

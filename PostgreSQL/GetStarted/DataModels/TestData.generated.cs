@@ -19,19 +19,23 @@ namespace DataModel
 	/// </summary>
 	public partial class TestDataDB : LinqToDB.Data.DataConnection
 	{
-		public ITable<alltype>       alltypes       { get { return this.GetTable<alltype>(); } }
-		public ITable<Child>         Children       { get { return this.GetTable<Child>(); } }
-		public ITable<Doctor>        Doctors        { get { return this.GetTable<Doctor>(); } }
-		public ITable<entity>        entities       { get { return this.GetTable<entity>(); } }
-		public ITable<GrandChild>    GrandChilds    { get { return this.GetTable<GrandChild>(); } }
-		public ITable<LinqDataType>  LinqDataTypes  { get { return this.GetTable<LinqDataType>(); } }
-		public ITable<Parent>        Parents        { get { return this.GetTable<Parent>(); } }
-		public ITable<Patient>       Patients       { get { return this.GetTable<Patient>(); } }
-		public ITable<Person>        People         { get { return this.GetTable<Person>(); } }
-		public ITable<SequenceTest1> SequenceTest1  { get { return this.GetTable<SequenceTest1>(); } }
-		public ITable<SequenceTest2> SequenceTest2  { get { return this.GetTable<SequenceTest2>(); } }
-		public ITable<SequenceTest3> SequenceTest3  { get { return this.GetTable<SequenceTest3>(); } }
-		public ITable<TestIdentity>  TestIdentities { get { return this.GetTable<TestIdentity>(); } }
+		public ITable<alltype>                 alltypes                { get { return this.GetTable<alltype>(); } }
+		public ITable<Child>                   Children                { get { return this.GetTable<Child>(); } }
+		public ITable<Doctor>                  Doctors                 { get { return this.GetTable<Doctor>(); } }
+		public ITable<entity>                  entities                { get { return this.GetTable<entity>(); } }
+		public ITable<GrandChild>              GrandChildren           { get { return this.GetTable<GrandChild>(); } }
+		public ITable<LinqDataType>            LinqDataTypes           { get { return this.GetTable<LinqDataType>(); } }
+		public ITable<Parent>                  Parents                 { get { return this.GetTable<Parent>(); } }
+		public ITable<Patient>                 Patients                { get { return this.GetTable<Patient>(); } }
+		public ITable<Person>                  People                  { get { return this.GetTable<Person>(); } }
+		public ITable<SequenceTest1>           SequenceTest1           { get { return this.GetTable<SequenceTest1>(); } }
+		public ITable<SequenceTest2>           SequenceTest2           { get { return this.GetTable<SequenceTest2>(); } }
+		public ITable<SequenceTest3>           SequenceTest3           { get { return this.GetTable<SequenceTest3>(); } }
+		public ITable<TestIdentity>            TestIdentities          { get { return this.GetTable<TestIdentity>(); } }
+		public ITable<testsamename>            testsamenames           { get { return this.GetTable<testsamename>(); } }
+		public ITable<TestSchema_testsameName> TestSchema_testsameName { get { return this.GetTable<TestSchema_testsameName>(); } }
+		public ITable<TestSchemaIdentity>      TestSchemaIdentities    { get { return this.GetTable<TestSchemaIdentity>(); } }
+		public ITable<testserialidentity>      testserialidentities    { get { return this.GetTable<testserialidentity>(); } }
 
 		public TestDataDB()
 		{
@@ -205,6 +209,30 @@ namespace DataModel
 
 	[Table(Schema="public", Name="TestIdentity")]
 	public partial class TestIdentity
+	{
+		[PrimaryKey, Identity] public int ID { get; set; } // integer
+	}
+
+	[Table(Schema="public", Name="testsamename")]
+	public partial class testsamename
+	{
+		[PrimaryKey, Identity] public int id { get; set; } // integer
+	}
+
+	[Table(Schema="test_schema", Name="testsamename")]
+	public partial class TestSchema_testsameName
+	{
+		[PrimaryKey, Identity] public int id { get; set; } // integer
+	}
+
+	[Table(Schema="test_schema", Name="TestSchemaIdentity")]
+	public partial class TestSchemaIdentity
+	{
+		[PrimaryKey, Identity] public int ID { get; set; } // integer
+	}
+
+	[Table(Schema="test_schema", Name="testserialidentity")]
+	public partial class testserialidentity
 	{
 		[PrimaryKey, Identity] public int ID { get; set; } // integer
 	}
