@@ -5,6 +5,6 @@
 <#
 	NamespaceName = "DataModel";
 
-	LoadSqlServerMetadata(".", "Northwind");
+	LoadSqlServerMetadata(@"DBHost\SQLSERVER2012", "Northwind", "sa", "TestPassword");
 	GenerateModel();
 #>

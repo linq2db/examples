@@ -14,28 +14,22 @@ using System.Reflection;
 using LinqToDB;
 using LinqToDB.Common;
 using LinqToDB.Data;
+using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.Mapping;
-using LinqToDB.SqlBuilder;
 
 namespace DataModel
 {
 	/// <summary>
 	/// Database       : Northwind
-	/// Data Source    : .
-	/// Server Version : 10.50.4000
+	/// Data Source    : DBHost\SQLSERVER2012
+	/// Server Version : 11.00.2100
 	/// </summary>
 	public partial class NorthwindDB : LinqToDB.Data.DataConnection
 	{
 		public ITable<AlphabeticalListOfProduct>  AlphabeticalListOfProducts   { get { return this.GetTable<AlphabeticalListOfProduct>(); } }
-		/// <summary>
-		/// Description for Categories table.
-		/// </summary>
 		public ITable<Category>                   Categories                   { get { return this.GetTable<Category>(); } }
 		public ITable<CategorySalesFor1997>       CategorySalesFor1997         { get { return this.GetTable<CategorySalesFor1997>(); } }
 		public ITable<CurrentProductList>         CurrentProductLists          { get { return this.GetTable<CurrentProductList>(); } }
-		/// <summary>
-		/// Description of Customers table.
-		/// </summary>
 		public ITable<Customer>                   Customers                    { get { return this.GetTable<Customer>(); } }
 		public ITable<CustomerAndSuppliersByCity> CustomerAndSuppliersByCities { get { return this.GetTable<CustomerAndSuppliersByCity>(); } }
 		public ITable<CustomerCustomerDemo>       CustomerCustomerDemoes       { get { return this.GetTable<CustomerCustomerDemo>(); } }
@@ -79,75 +73,6 @@ namespace DataModel
 			public int Rank;
 		}
 
-		public class FreeTextTableExpressionAttribute : Sql.TableExpressionAttribute
-		{
-			public FreeTextTableExpressionAttribute()
-				: base("")
-			{
-			}
-
-			private string Convert(string value)
-			{
-				if (value != null && value.Length > 0 && value[0] != '[')
-					return "[" + value + "]";
-				return value;
-			}
-
-			public override void SetTable(SqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<ISqlExpression> sqlArgs)
-			{
-				var aargs  = sqlArgs.ToArray();
-				var arr    = ConvertArgs(member, aargs).ToList();
-				var method = (MethodInfo)member;
-
-				{
-					var ttype  = method.GetGenericArguments()[0];
-					var tbl    = new SqlTable(ttype);
-
-					var database     = Convert(tbl.Database);
-					var owner        = Convert(tbl.Owner);
-					var physicalName = Convert(tbl.PhysicalName);
-
-					var name = "";
-
-					if (database != null)
-						name = database + "." + (owner == null ? "." : owner + ".");
-					else if (owner != null)
-						name = owner + ".";
-
-					name += physicalName;
-
-					arr.Add(new SqlExpression(name, Precedence.Primary));
-				}
-
-				{
-					var field = ((ConstantExpression)expArgs.First()).Value;
-
-					if (field is string)
-					{
-						arr[0] = new SqlExpression(field.ToString(), Precedence.Primary);
-					}
-					else if (field is LambdaExpression)
-					{
-						var body = ((LambdaExpression)field).Body;
-
-						if (body is MemberExpression)
-						{
-							var name = ((MemberExpression)body).Member.Name;
-
-							if (name.Length > 0 && name[0] != '[')
-								name = "[" + name + "]";
-
-							arr[0] = new SqlExpression(name, Precedence.Primary);
-						}
-					}
-				}
-
-				table.SqlTableType   = SqlTableType.Expression;
-				table.Name           = "FREETEXTTABLE({6}, {2}, {3}) {1}";
-				table.TableArguments = arr.ToArray();
-			}
-		}
-
 		[FreeTextTableExpression]
 		public ITable<FreeTextKey<TKey>> FreeTextTable<TTable,TKey>(string field, string text)
 		{
@@ -188,15 +113,9 @@ namespace DataModel
 		[Column, NotNull    ] public string   CategoryName    { get; set; } // nvarchar(15)
 	}
 
-	/// <summary>
-	/// Description for Categories table.
-	/// </summary>
 	[Table(Schema="dbo", Name="Categories")]
 	public partial class Category
 	{
-		/// <summary>
-		/// Description of Categories.CategoryID field.
-		/// </summary>
 		[PrimaryKey, Identity   ] public int    CategoryID   { get; set; } // int
 		[Column,     NotNull    ] public string CategoryName { get; set; } // nvarchar(15)
 		[Column,        Nullable] public string Description  { get; set; } // ntext
@@ -229,19 +148,10 @@ namespace DataModel
 		[Column,   NotNull] public string ProductName { get; set; } // nvarchar(40)
 	}
 
-	/// <summary>
-	/// Description of Customers table.
-	/// </summary>
 	[Table(Schema="dbo", Name="Customers")]
 	public partial class Customer
 	{
-		/// <summary>
-		/// Just ID.
-		/// </summary>
 		[PrimaryKey, NotNull    ] public string CustomerID   { get; set; } // nchar(5)
-		/// <summary>
-		/// Name of the Company.
-		/// </summary>
 		[Column,     NotNull    ] public string CompanyName  { get; set; } // nvarchar(40)
 		[Column,        Nullable] public string ContactName  { get; set; } // nvarchar(30)
 		[Column,        Nullable] public string ContactTitle { get; set; } // nvarchar(30)
@@ -348,7 +258,13 @@ namespace DataModel
 		/// FK_Employees_Employees
 		/// </summary>
 		[Association(ThisKey="ReportsTo", OtherKey="EmployeeID", CanBeNull=true)]
-		public Employee FK_Employees_Employees { get; set; }
+		public Employee FK_Employees_Employee { get; set; }
+
+		/// <summary>
+		/// FK_Employees_Employees_BackReference
+		/// </summary>
+		[Association(ThisKey="EmployeeID", OtherKey="ReportsTo", CanBeNull=false)]
+		public IEnumerable<Employee> FK_Employees_Employees_BackReferences { get; set; }
 
 		/// <summary>
 		/// FK_Orders_Employees_BackReference
@@ -361,12 +277,6 @@ namespace DataModel
 		/// </summary>
 		[Association(ThisKey="EmployeeID", OtherKey="EmployeeID", CanBeNull=false)]
 		public IEnumerable<EmployeeTerritory> EmployeeTerritories { get; set; }
-
-		/// <summary>
-		/// FK_Employees_Employees_BackReference
-		/// </summary>
-		[Association(ThisKey="EmployeeID", OtherKey="ReportsTo", CanBeNull=false)]
-		public IEnumerable<Employee> FK_Employees_Employees_BackReference { get; set; }
 
 		#endregion
 	}
@@ -447,10 +357,10 @@ namespace DataModel
 		#region Associations
 
 		/// <summary>
-		/// FK_Orders_Shippers
+		/// FK_Orders_Customers
 		/// </summary>
-		[Association(ThisKey="ShipVia", OtherKey="ShipperID", CanBeNull=true)]
-		public Shipper Shipper { get; set; }
+		[Association(ThisKey="CustomerID", OtherKey="CustomerID", CanBeNull=true)]
+		public Customer Customer { get; set; }
 
 		/// <summary>
 		/// FK_Orders_Employees
@@ -459,10 +369,10 @@ namespace DataModel
 		public Employee Employee { get; set; }
 
 		/// <summary>
-		/// FK_Orders_Customers
+		/// FK_Orders_Shippers
 		/// </summary>
-		[Association(ThisKey="CustomerID", OtherKey="CustomerID", CanBeNull=true)]
-		public Customer Customer { get; set; }
+		[Association(ThisKey="ShipVia", OtherKey="ShipperID", CanBeNull=true)]
+		public Shipper Shipper { get; set; }
 
 		/// <summary>
 		/// FK_Order_Details_Orders_BackReference
@@ -563,16 +473,16 @@ namespace DataModel
 		#region Associations
 
 		/// <summary>
-		/// FK_Products_Suppliers
-		/// </summary>
-		[Association(ThisKey="SupplierID", OtherKey="SupplierID", CanBeNull=true)]
-		public Supplier Supplier { get; set; }
-
-		/// <summary>
 		/// FK_Products_Categories
 		/// </summary>
 		[Association(ThisKey="CategoryID", OtherKey="CategoryID", CanBeNull=true)]
 		public Category Category { get; set; }
+
+		/// <summary>
+		/// FK_Products_Suppliers
+		/// </summary>
+		[Association(ThisKey="SupplierID", OtherKey="SupplierID", CanBeNull=true)]
+		public Supplier Supplier { get; set; }
 
 		/// <summary>
 		/// FK_Order_Details_Products_BackReference
@@ -871,104 +781,89 @@ namespace DataModel
 		}
 
 		#endregion
-
-		#region sp_helpdiagrams
-
-		public partial class sp_helpdiagramsResult
-		{
-			public string Database { get; set; }
-			public string Name     { get; set; }
-			public int    ID       { get; set; }
-			public string Owner    { get; set; }
-			public int    OwnerID  { get; set; }
-		}
-
-		public static IEnumerable<sp_helpdiagramsResult> sp_helpdiagrams(this DataConnection dataConnection, string @diagramname, int? @owner_id)
-		{
-			return dataConnection.QueryProc<sp_helpdiagramsResult>("[dbo].[sp_helpdiagrams]",
-				new DataParameter("@diagramname", @diagramname),
-				new DataParameter("@owner_id",    @owner_id));
-		}
-
-		#endregion
-
-		#region sp_helpdiagramdefinition
-
-		public partial class sp_helpdiagramdefinitionResult
-		{
-			public int?   version    { get; set; }
-			public byte[] definition { get; set; }
-		}
-
-		public static IEnumerable<sp_helpdiagramdefinitionResult> sp_helpdiagramdefinition(this DataConnection dataConnection, string @diagramname, int? @owner_id)
-		{
-			return dataConnection.QueryProc<sp_helpdiagramdefinitionResult>("[dbo].[sp_helpdiagramdefinition]",
-				new DataParameter("@diagramname", @diagramname),
-				new DataParameter("@owner_id",    @owner_id));
-		}
-
-		#endregion
-
-		#region sp_creatediagram
-
-		public static int sp_creatediagram(this DataConnection dataConnection, string @diagramname, int? @owner_id, int? @version, byte[] @definition)
-		{
-			return dataConnection.ExecuteProc("[dbo].[sp_creatediagram]",
-				new DataParameter("@diagramname", @diagramname),
-				new DataParameter("@owner_id",    @owner_id),
-				new DataParameter("@version",     @version),
-				new DataParameter("@definition",  @definition));
-		}
-
-		#endregion
-
-		#region sp_renamediagram
-
-		public static int sp_renamediagram(this DataConnection dataConnection, string @diagramname, int? @owner_id, string @new_diagramname)
-		{
-			return dataConnection.ExecuteProc("[dbo].[sp_renamediagram]",
-				new DataParameter("@diagramname",     @diagramname),
-				new DataParameter("@owner_id",        @owner_id),
-				new DataParameter("@new_diagramname", @new_diagramname));
-		}
-
-		#endregion
-
-		#region sp_alterdiagram
-
-		public static int sp_alterdiagram(this DataConnection dataConnection, string @diagramname, int? @owner_id, int? @version, byte[] @definition)
-		{
-			return dataConnection.ExecuteProc("[dbo].[sp_alterdiagram]",
-				new DataParameter("@diagramname", @diagramname),
-				new DataParameter("@owner_id",    @owner_id),
-				new DataParameter("@version",     @version),
-				new DataParameter("@definition",  @definition));
-		}
-
-		#endregion
-
-		#region sp_dropdiagram
-
-		public static int sp_dropdiagram(this DataConnection dataConnection, string @diagramname, int? @owner_id)
-		{
-			return dataConnection.ExecuteProc("[dbo].[sp_dropdiagram]",
-				new DataParameter("@diagramname", @diagramname),
-				new DataParameter("@owner_id",    @owner_id));
-		}
-
-		#endregion
 	}
 
-	public static partial class SqlFunctions
+	public static partial class tableExtensions
 	{
-		#region fn_diagramobjects
-
-		[Sql.Function(Name="fn_diagramobjects", ServerSideOnly=true)]
-		public static int? fn_diagramobjects()
+		public static Category Find(this ITable<Category> table, int CategoryID)
 		{
-			throw new InvalidOperationException();
+			return table.FirstOrDefault(t =>
+				t.CategoryID == CategoryID);
 		}
 
-		#endregion
+		public static Customer Find(this ITable<Customer> table, string CustomerID)
+		{
+			return table.FirstOrDefault(t =>
+				t.CustomerID == CustomerID);
+		}
+
+		public static CustomerCustomerDemo Find(this ITable<CustomerCustomerDemo> table, string CustomerID, string CustomerTypeID)
+		{
+			return table.FirstOrDefault(t =>
+				t.CustomerID     == CustomerID &&
+				t.CustomerTypeID == CustomerTypeID);
+		}
+
+		public static CustomerDemographic Find(this ITable<CustomerDemographic> table, string CustomerTypeID)
+		{
+			return table.FirstOrDefault(t =>
+				t.CustomerTypeID == CustomerTypeID);
+		}
+
+		public static Employee Find(this ITable<Employee> table, int EmployeeID)
+		{
+			return table.FirstOrDefault(t =>
+				t.EmployeeID == EmployeeID);
+		}
+
+		public static EmployeeTerritory Find(this ITable<EmployeeTerritory> table, int EmployeeID, string TerritoryID)
+		{
+			return table.FirstOrDefault(t =>
+				t.EmployeeID  == EmployeeID &&
+				t.TerritoryID == TerritoryID);
+		}
+
+		public static Order Find(this ITable<Order> table, int OrderID)
+		{
+			return table.FirstOrDefault(t =>
+				t.OrderID == OrderID);
+		}
+
+		public static OrderDetail Find(this ITable<OrderDetail> table, int OrderID, int ProductID)
+		{
+			return table.FirstOrDefault(t =>
+				t.OrderID   == OrderID &&
+				t.ProductID == ProductID);
+		}
+
+		public static Product Find(this ITable<Product> table, int ProductID)
+		{
+			return table.FirstOrDefault(t =>
+				t.ProductID == ProductID);
+		}
+
+		public static Region Find(this ITable<Region> table, int RegionID)
+		{
+			return table.FirstOrDefault(t =>
+				t.RegionID == RegionID);
+		}
+
+		public static Shipper Find(this ITable<Shipper> table, int ShipperID)
+		{
+			return table.FirstOrDefault(t =>
+				t.ShipperID == ShipperID);
+		}
+
+		public static Supplier Find(this ITable<Supplier> table, int SupplierID)
+		{
+			return table.FirstOrDefault(t =>
+				t.SupplierID == SupplierID);
+		}
+
+		public static Territory Find(this ITable<Territory> table, string TerritoryID)
+		{
+			return table.FirstOrDefault(t =>
+				t.TerritoryID == TerritoryID);
+		}
 	}
 }
