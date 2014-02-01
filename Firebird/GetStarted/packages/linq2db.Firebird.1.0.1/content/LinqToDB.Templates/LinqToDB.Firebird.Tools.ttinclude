@@ -1,3 +1,0 @@
-<#@ assembly name="$(SolutionDir)packages\linq2db.Firebird.1.0.1\tools\FirebirdSql.Data.FirebirdClient.dll" #>
-<#@ include file="LinqToDB.Tools.ttinclude" #>
-<#@ include file="LinqToDB.Firebird.ttinclude" #>
