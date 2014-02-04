@@ -1,4 +1,0 @@
-<#@ assembly name="$(SolutionDir)packages\linq2db.PostgreSQL.1.0.0\tools\Npgsql.dll" #>
-<#@ assembly name="$(SolutionDir)packages\linq2db.PostgreSQL.1.0.0\tools\Mono.Security.dll" #>
-<#@ include file="LinqToDB.Tools.ttinclude" #>
-<#@ include file="LinqToDB.PostgreSQL.ttinclude" #>
