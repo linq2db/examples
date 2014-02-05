@@ -1,0 +1,507 @@
+<#@ assembly name="System.Data"        #>
+<#@ import namespace="System.Data"     #>
+<#@ import namespace="LinqToDB.Data"   #>
+<#@ include file="DataModel.ttinclude" #>
+<#
+	if (BaseDataContextClass == null)
+		BaseDataContextClass = "LinqToDB.Data.DataConnection";
+#>
+<#+
+Action BeforeGenerateLinqToDBModel = () => {};
+Action AfterGenerateLinqToDBModel = () => {};
+
+bool GenerateObsoleteAttributeForAliases;
+bool GenerateFindExtensions = true;
+bool IsCompactColumns       = true;
+bool IsCompactColumnAliases = true;
+
+void GenerateTypesFromMetadata()
+{
+	BeforeGenerateLinqToDBModel();
+
+	Model.Usings.Add("LinqToDB");
+	Model.Usings.Add("LinqToDB.Mapping");
+
+	if (NamespaceName == null)
+		NamespaceName = "DataModel";
+
+	var props           = new MemberGroup { IsCompact = true };
+	var aliases         = new MemberGroup { IsCompact = true, Region = "Alias members" };
+	var tableExtensions = new MemberGroup {  };
+
+	if (GenerateConstructors)
+	{
+		if (DefaultConfiguration == null)
+			DataContextObject.Members.Add(new Method(null, DataContextObject.Name));
+		else
+			DataContextObject.Members.Add(new Method(null, DataContextObject.Name) { AfterSignature = { ": base(\"" + DefaultConfiguration + "\")" } });
+		DataContextObject.Members.Add(new Method(null, DataContextObject.Name, new[] { "string configuration" }) { AfterSignature = { ": base(configuration)" } });
+	}
+
+	if (Tables.Count > 0)
+		DataContextObject.Members.Insert(0, props);
+
+	foreach (var t in Tables.Values.OrderBy(tbl => tbl.TypeName))
+	{
+		var dcProp = new Property(
+			string.Format("ITable<{0}>", t.TypeName),
+			t.DataContextPropertyName,
+			new[] { string.Format("this.GetTable<{0}>()", t.TypeName) },
+			null);
+
+		props.Members.Add(dcProp);
+
+		Property aProp = null;
+
+		if (t.AliasPropertyName != null && t.AliasPropertyName != t.DataContextPropertyName)
+		{
+			aProp = new Property(
+				string.Format("ITable<{0}>", t.TypeName),
+				t.AliasPropertyName,
+				new[] { t.DataContextPropertyName },
+				null);
+			
+			if (GenerateObsoleteAttributeForAliases)
+				aProp.Attributes.Add(new Attribute("Obsolete", "\"Use " + t.DataContextPropertyName + " instead.\""));
+
+			aliases.Members.Add(aProp);
+		}
+
+		var tableAttrs = new List<string>();
+
+		if (DatabaseName != null) tableAttrs.Add("Database=" + '"' + DatabaseName + '"');
+		if (t.Schema     != null) tableAttrs.Add("Schema="   + '"' + t.Schema     + '"');
+
+		tableAttrs.Add((tableAttrs.Count == 0 ? "" : "Name=") + '"' + t.TableName + '"');
+
+		t.Attributes.Add(new Attribute("Table", tableAttrs.ToArray()) { IsSeparated = true } );
+
+		if (t.IsView)
+			t.Comment.Add(" View");
+
+		var comments = new List<string>();
+
+		if (!string.IsNullOrWhiteSpace(t.Description))
+		{
+			comments.Add("/ <summary>");
+			foreach (var line in t.Description.Split('\n'))
+				comments.Add("/ " + line.TrimEnd());
+			comments.Add("/ </summary>");
+		}
+
+		if (comments.Count > 0)
+		{
+			t.     Comment.AddRange(comments);
+			dcProp.Comment.AddRange(comments);
+
+			if (aProp != null)
+				aProp.Comment.AddRange(comments);
+		}
+
+		var columns       = new MemberGroup { IsCompact = IsCompactColumns };
+		var columnAliases = new MemberGroup { IsCompact = IsCompactColumnAliases, Region = "Alias members" };
+		var nPKs          = t.Columns.Values.Count(c => c.IsPrimaryKey);
+		var allNullable   = t.Columns.Values.All  (c => c.IsNullable || c.IsIdentity);
+
+		foreach (var c in t.Columns.Values)
+		{
+			// Column.
+			//
+			var ca = new Attribute("Column");
+			var canBeReplaced = true;
+
+			if (c.MemberName != c.ColumnName)
+			{
+				ca.Parameters.Add('"' + c.ColumnName + '"');
+				canBeReplaced = false;
+			}
+
+			if (c.SkipOnInsert && !c.IsIdentity)
+			{
+				ca.Parameters.Add("SkipOnInsert=true");
+				canBeReplaced = false;
+			}
+
+			if (c.SkipOnUpdate && !c.IsIdentity)
+			{
+				ca.Parameters.Add("SkipOnUpdate=true");
+				canBeReplaced = false;
+			}
+
+			c.Attributes.Add(ca);
+
+			// PK.
+			//
+			if (c.IsPrimaryKey)
+			{
+				var pka = new Attribute("PrimaryKey");
+
+				if (nPKs > 1)
+					pka.Parameters.Add(c.PrimaryKeyOrder.ToString());
+
+				if (canBeReplaced)
+					c.Attributes[0] = pka;
+				else
+					c.Attributes.Add(pka);
+
+				canBeReplaced = false;
+			}
+
+			// Identity.
+			//
+			if (c.IsIdentity)
+			{
+				var ida = new Attribute("Identity");
+
+				if (canBeReplaced)
+					c.Attributes[0] = ida;
+				else
+					c.Attributes.Add(ida);
+
+				canBeReplaced = false;
+			}
+
+			// Nullable.
+			//
+			if (c.IsNullable)
+				c.Attributes.Add(new Attribute((allNullable ? "" : "   ") + "Nullable"));
+			else if (!c.IsIdentity)
+				c.Attributes.Add(new Attribute("NotNull"));
+
+			var columnComments = new List<string>();
+
+			if (!string.IsNullOrWhiteSpace(c.Description))
+			{
+				columnComments.Add("/ <summary>");
+				foreach (var line in c.Description.Split('\n'))
+					columnComments.Add("/ " + line.TrimEnd());
+				columnComments.Add("/ </summary>");
+			}
+
+			if (columnComments.Count > 0)
+				c.Comment.AddRange(columnComments);
+
+			// End line comment.
+			//
+			c.EndLineComment = c.ColumnType;
+
+			SetPropertyValue(c, "IsNotifying", true);
+			SetPropertyValue(c, "IsEditable",  true);
+
+			columns.Members.Add(c);
+
+			// Alias.
+			//
+			if (c.AliasName != null && c.AliasName != c.MemberName)
+			{
+				var caProp = new Property(
+					c.Type,
+					c.AliasName,
+					new[] { c.MemberName },
+					new[] { c.MemberName + " = value;"});
+
+				caProp.Comment.AddRange(columnComments);
+
+				if (GenerateObsoleteAttributeForAliases)
+					caProp.Attributes.Add(new Attribute("Obsolete", "\"Use " + c.MemberName + " instead.\""));
+
+				caProp.Attributes.Add(new Attribute("ColumnAlias", "\"" + c.MemberName + "\""));
+
+				columnAliases.Members.Add(caProp);
+			}
+		}
+
+		t.Members.Add(columns);
+
+		if (columnAliases.Members.Count > 0)
+			t.Members.Add(columnAliases);
+
+		if (GenerateAssociations)
+		{
+			var keys = t.ForeignKeys.Values.ToList();
+
+			if (!GenerateBackReferences)
+				keys = keys.Where(k => k.BackReference != null).ToList();
+
+			if (keys.Count > 0)
+			{
+				var associations = new MemberGroup { Region = "Associations" };
+
+				foreach (var key in keys)
+				{
+					key.Comment.Add("/ <summary>");
+					key.Comment.Add("/ " + key.KeyName);
+					key.Comment.Add("/ </summary>");
+
+					if (key.AssociationType == AssociationType.OneToMany)
+						key.Type = string.Format(OneToManyAssociationType, key.OtherTable.TypeName);
+					else
+						key.Type = key.OtherTable.TypeName;
+
+					var aa = new Attribute("Association");
+
+					aa.Parameters.Add("ThisKey=\""   + string.Join(", ", (from c in key.ThisColumns  select c.MemberName).ToArray()) + "\"");
+					aa.Parameters.Add("OtherKey=\""  + string.Join(", ", (from c in key.OtherColumns select c.MemberName).ToArray()) + "\"");
+					aa.Parameters.Add("CanBeNull=" + (key.CanBeNull ? "true" : "false"));
+
+					key.Attributes.Add(aa);
+
+					SetPropertyValue(key, "IsNotifying", true);
+					SetPropertyValue(key, "IsEditable",  true);
+
+					associations.Members.Add(key);
+				}
+
+				t.Members.Add(associations);
+			}
+		}
+
+		if (GenerateFindExtensions && nPKs > 0)
+		{
+			var PKs         = t.Columns.Values.Where(c => c.IsPrimaryKey).ToList();
+			var maxNameLen1 = PKs.Max(c => (int?)c.MemberName.Length) ?? 0;
+			var maxNameLen2 = PKs.Take(nPKs - 1).Max(c => (int?)c.MemberName.Length) ?? 0;
+
+			tableExtensions.Members.Add(
+				new Method(
+					t.TypeName,
+					"Find",
+					new[] { (string.Format("this ITable<{0}> table", t.TypeName)) }
+						.Union(PKs.Select(c => c.Type + " " + c.MemberName)),
+					new[] { "return table.FirstOrDefault(t =>" }
+						.Union(PKs.Select((c,i) => string.Format("\tt.{0}{1} == {0}{3}{2}",
+							c.MemberName, LenDiff(maxNameLen1, c.MemberName), i == nPKs - 1 ? ");" : " &&", i == nPKs - 1 ? "" : LenDiff(maxNameLen2, c.MemberName)))))
+				{
+					IsStatic = true
+				});
+		}
+
+		Model.Types.Add(t);
+
+		if (!string.IsNullOrWhiteSpace(t.AliasTypeName))
+		{
+			var aClass = new Class(t.AliasTypeName)
+			{
+				BaseClass = t.TypeName
+			};
+
+			if (comments.Count > 0)
+				aClass.Comment.AddRange(comments);
+
+			if (GenerateObsoleteAttributeForAliases)
+				aClass.Attributes.Add(new Attribute("Obsolete", "\"Use " + t.TypeName + " instead.\""));
+
+			Model.Types.Add(aClass);
+		}
+	}
+
+	if (aliases.Members.Count > 0)
+		DataContextObject.Members.Add(aliases);
+
+	if (Procedures.Count > 0)
+	{
+		Model.Usings.Add("System.Collections.Generic");
+		Model.Usings.Add("System.Data");
+		Model.Usings.Add("LinqToDB.Data");
+		Model.Usings.Add("LinqToDB.Common");
+
+		var procs = new MemberGroup();
+		var funcs = new MemberGroup();
+		var tabfs = new MemberGroup { Region = "Table Functions" };
+
+		foreach (var p in Procedures.Values)
+		{
+			if (p.ResultTable == null && p.ResultException != null)
+				continue;
+
+			var proc = new MemberGroup { Region = p.Name };
+
+			if (p.IsTableFunction)
+			{
+				p.Attributes.Add(new Attribute("Sql.TableFunction", "Name=\"" + p.ProcedureName + "\""));
+				p.Type = "ITable<" + p.ResultTable.TypeName + ">";
+			}
+			else if (p.IsFunction)
+			{
+				p.IsStatic = true;
+				p.Type = p.ProcParameters.Single(pr => pr.IsResult).ParameterType;
+				p.Attributes.Add(new Attribute("Sql.Function", "Name=\"" + p.ProcedureName + "\"", "ServerSideOnly=true"));
+			}
+			else
+			{
+				p.IsStatic = true;
+				p.Type     = p.ResultTable == null ? "int" : "IEnumerable<" + p.ResultTable.TypeName + ">";
+				p.Parameters.Add("this DataConnection dataConnection");
+			}
+
+			foreach (var pr in p.ProcParameters.Where(par => !par.IsResult))
+				p.Parameters.Add(string.Format("{0}{1} {2}",
+					pr.IsOut ? pr.IsIn ? "ref " : "out " : "", pr.ParameterType, pr.ParameterName));
+
+			if (p.IsTableFunction)
+			{
+				var body = string.Format("return GetTable<{0}>(this, (MethodInfo)MethodBase.GetCurrentMethod()", p.ResultTable.TypeName);
+
+				body += p.ProcParameters.Count == 0 ? ");" : ",";
+
+				p.Body.Add(body);
+
+				for (var i = 0; i < p.ProcParameters.Count; i++)
+					p.Body.Add("\t" + p.ProcParameters[i].ParameterName + (i + 1 == p.ProcParameters.Count ? ");" : ","));
+			}
+			else if (p.IsFunction)
+			{
+				p.Body.Add("throw new InvalidOperationException();");
+			}
+			else
+			{
+				var spName = "\"" + 
+					SqlBuilder.BuildTableName(
+						new System.Text.StringBuilder(),
+						(string)SqlBuilder.Convert(DatabaseName,    LinqToDB.SqlProvider.ConvertType.NameToDatabase),
+						(string)SqlBuilder.Convert(p.Schema,        LinqToDB.SqlProvider.ConvertType.NameToOwner),
+						(string)SqlBuilder.Convert(p.ProcedureName, LinqToDB.SqlProvider.ConvertType.NameToQueryTable)
+					).ToString() +
+					 "\"";
+
+				var inputParameters  = p.ProcParameters.Where(pp => pp.IsIn). ToList();
+				var outputParameters = p.ProcParameters.Where(pp => pp.IsOut).ToList();
+
+				spName += inputParameters.Count == 0 ? ");" : ",";
+
+				var hasOut = outputParameters.Any(pr => pr.IsOut);
+				var prefix = hasOut ? "var ret = " : "return ";
+
+				if (p.ResultTable == null)
+					p.Body.Add(prefix + "dataConnection.ExecuteProc(" + spName);
+				else
+				{
+					if (p.ResultTable.Columns.Values.Any(c => c.IsDuplicateOrEmpty))
+					{
+						p.Body.Add("var ms = dataConnection.MappingSchema;");
+						p.Body.Add("");
+						p.Body.Add(prefix + "dataConnection.QueryProc(dataReader =>");
+						p.Body.Add("\tnew " + p.ResultTable.TypeName);
+						p.Body.Add("\t{");
+
+						var n          = 0;
+						var maxNameLen = p.ResultTable.Columns.Values.Max(c => (int?)c.MemberName.Length) ?? 0;
+						var maxTypeLen = p.ResultTable.Columns.Values.Max(c => (int?)c.Type.      Length) ?? 0;
+
+						foreach (var c in p.ResultTable.Columns.Values)
+						{
+							p.Body.Add(string.Format("\t\t{0}{1} = Converter.ChangeTypeTo<{2}>{3}(dataReader.GetValue({4}), ms),",
+								c.MemberName, LenDiff(maxNameLen, c.MemberName), c.Type, LenDiff(maxTypeLen, c.Type), n++));
+						}
+
+						p.Body.Add("\t},");
+						p.Body.Add("\t" + spName);
+					}
+					else
+					{
+						p.Body.Add(prefix + "dataConnection.QueryProc<" + p.ResultTable.TypeName + ">(" + spName);
+					}
+				}
+
+				var maxLenSchema = inputParameters.Max(pr => (int?)pr.SchemaName.   Length) ?? 0;
+				var maxLenParam  = inputParameters.Max(pr => (int?)pr.ParameterName.Length) ?? 0;
+				var maxLenType   = inputParameters.Max(pr => (int?)pr.ParameterType.Length) ?? 0;
+
+				for (var i = 0; i < inputParameters.Count; i++)
+				{
+					var pr = inputParameters[i];
+
+					var str = string.Format("\tnew DataParameter(\"{0}\", {1}{2})",
+						pr.SchemaName,
+						LenDiff(maxLenSchema, pr.SchemaName),
+						pr.ParameterName);
+
+					if (pr.IsOut)
+					{
+						str += LenDiff(maxLenParam, pr.ParameterName);
+						str += " { Direction = " + (pr.IsIn ? "ParameterDirection.InputOutput" : "ParameterDirection.Output");
+
+						if (pr.Size != null && pr.Size.Value != 0)
+							str += ", Size = " + pr.Size.Value;
+
+						str += " }";
+					}
+
+					str += i + 1 == inputParameters.Count ? ");" : ",";
+
+					p.Body.Add(str);
+				}
+
+				if (hasOut)
+				{
+					maxLenSchema = outputParameters.Max(pr => (int?)pr.SchemaName.   Length) ?? 0;
+					maxLenParam  = outputParameters.Max(pr => (int?)pr.ParameterName.Length) ?? 0;
+					maxLenType   = outputParameters.Max(pr => (int?)pr.ParameterType.Length) ?? 0;
+
+					p.Body.Add("");
+
+					foreach (var pr in p.ProcParameters.Where(_ => _.IsOut))
+					{
+						var str = string.Format("{0} {1}= Converter.ChangeTypeTo<{2}>{3}(((IDbDataParameter)dataConnection.Command.Parameters[\"{4}\"]).{5}Value);",
+							pr.ParameterName,
+							LenDiff(maxLenParam,  pr.ParameterName),
+							pr.ParameterType,
+							LenDiff(maxLenType,   pr.ParameterType),
+							pr.SchemaName,
+							LenDiff(maxLenSchema, pr.SchemaName));
+
+						p.Body.Add(str);
+					}
+
+					p.Body.Add("");
+					p.Body.Add("return ret;");
+				}
+			}
+
+			if (p.ResultTable != null && p.ResultTable.DataContextPropertyName == null)
+			{
+				var columns = new MemberGroup { IsCompact = true };
+
+				foreach (var c in p.ResultTable.Columns.Values)
+				{
+					if (c.MemberName != c.ColumnName)
+						c.Attributes.Add(new Attribute("Column") { Parameters = { '"' + c.ColumnName + '"' } });
+					columns.Members.Add(c);
+				}
+
+				p.ResultTable.Members.Add(columns);
+				proc.Members.Add(p.ResultTable);
+			}
+
+			proc.Members.Add(p);
+
+			     if (!p.IsFunction)     procs.Members.Add(proc);
+			else if (p.IsTableFunction) tabfs.Members.Add(proc);
+			else                        funcs.Members.Add(proc);
+		}
+
+		if (procs.Members.Count > 0)
+			Model.Types.Add(new Class(DataContextObject.Name + "StoredProcedures", procs) { IsStatic = true });
+
+		if (funcs.Members.Count > 0)
+			Model.Types.Add(new Class("SqlFunctions", funcs) { IsStatic = true });
+
+		if (tabfs.Members.Count > 0)
+			DataContextObject.Members.Add(tabfs);
+	}
+
+	if (tableExtensions.Members.Count > 0)
+	{
+		Model.Usings.Add("System.Linq");
+
+		Model.Types.Add(new Class("tableExtensions", tableExtensions) { IsStatic = true });
+	}
+
+	Tables.    Clear();
+	Procedures.Clear();
+
+	Model.SetTree();
+
+	AfterGenerateLinqToDBModel();
+}
+#>
