@@ -5,6 +5,7 @@
 // </auto-generated>
 //---------------------------------------------------------------------------------------------------
 using System;
+using System.Linq;
 
 using LinqToDB;
 using LinqToDB.Mapping;
@@ -215,5 +216,56 @@ namespace DataModel
 	public partial class testsamename
 	{
 		[PrimaryKey, NotNull] public object ID { get; set; } // int(11)
+	}
+
+	public static partial class tableExtensions
+	{
+		public static alltype Find(this ITable<alltype> table, object ID)
+		{
+			return table.FirstOrDefault(t =>
+				t.ID == ID);
+		}
+
+		public static binarydata Find(this ITable<binarydata> table, object BinaryDataID)
+		{
+			return table.FirstOrDefault(t =>
+				t.BinaryDataID == BinaryDataID);
+		}
+
+		public static datatypetest Find(this ITable<datatypetest> table, object DataTypeID)
+		{
+			return table.FirstOrDefault(t =>
+				t.DataTypeID == DataTypeID);
+		}
+
+		public static doctor Find(this ITable<doctor> table, object PersonID)
+		{
+			return table.FirstOrDefault(t =>
+				t.PersonID == PersonID);
+		}
+
+		public static patient Find(this ITable<patient> table, object PersonID)
+		{
+			return table.FirstOrDefault(t =>
+				t.PersonID == PersonID);
+		}
+
+		public static person Find(this ITable<person> table, object PersonID)
+		{
+			return table.FirstOrDefault(t =>
+				t.PersonID == PersonID);
+		}
+
+		public static testidentity Find(this ITable<testidentity> table, object ID)
+		{
+			return table.FirstOrDefault(t =>
+				t.ID == ID);
+		}
+
+		public static testsamename Find(this ITable<testsamename> table, object ID)
+		{
+			return table.FirstOrDefault(t =>
+				t.ID == ID);
+		}
 	}
 }
