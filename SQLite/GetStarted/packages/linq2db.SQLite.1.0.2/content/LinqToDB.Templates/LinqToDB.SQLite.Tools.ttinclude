@@ -1,3 +1,0 @@
-<#@ assembly name="$(SolutionDir)packages\linq2db.SQLite.1.0.2\tools\System.Data.SQLite.dll" #>
-<#@ include file="LinqToDB.Tools.ttinclude" #>
-<#@ include file="LinqToDB.SQLite.ttinclude" #>

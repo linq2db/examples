@@ -30,10 +30,14 @@
 				foreach (var c in q)
 					Console.WriteLine(c.ContactName);
 			}
+
+		5. See more at https://github.com/linq2db/t4models/blob/master/Templates/!ReadMe.LinqToDB.md.
 	*/
 
-	NamespaceName = "DataModel";
+	NamespaceName = "DataModels";
 
 	LoadSQLiteMetadata(@"C:\Data", "MyDatabase.sqlite");
+//	LoadSQLiteMetadata(string connectionString);
+
 	GenerateModel();
 #>
