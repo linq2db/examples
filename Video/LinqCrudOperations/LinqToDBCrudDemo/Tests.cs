@@ -24,25 +24,25 @@ namespace LinqToDBCrudDemo
 		[Table]
 		public class TestTable
 		{
-			[PrimaryKey, Identity] public int ID;
-			[Column(Length = 50), NotNull] public string Name;
-			[Column(Length = 250), Nullable] public string Description;
-			[Column] public DateTime? CreatedOn;
+			[PrimaryKey, Identity]           public int       ID;
+			[Column(Length = 50), NotNull]   public string    Name;
+			[Column(Length = 250), Nullable] public string    Description;
+			[Column]                         public DateTime? CreatedOn;
 		}
 
 		[Table]
 		public class TestTable2
 		{
-			[PrimaryKey, Identity] public int ID;
-			[Column(Length = 50), NotNull] public string Name;
+			[PrimaryKey, Identity]           public int ID;
+			[Column(Length = 50), NotNull]   public string Name;
 			[Column(Length = 250), Nullable] public string Description;
-			[Column] public DateTime? CreatedOn;
+			[Column]                         public DateTime? CreatedOn;
 		}
 
 		[Table]
 		public class TestTable3
 		{
-			[PrimaryKey] public int ID;
+			[PrimaryKey]                   public int ID;
 			[Column(Length = 50), NotNull] public string Name;
 		}
 
@@ -98,7 +98,7 @@ namespace LinqToDBCrudDemo
 				db.GetTable<TestTable>()
 					.Insert(() => new TestTable
 					{
-						Name = "Crazy Frog",
+						Name      = "Crazy Frog",
 						CreatedOn = Sql.CurrentTimestamp
 					});
 			}
@@ -117,7 +117,7 @@ namespace LinqToDBCrudDemo
 			{
 				db
 					.GetTable<TestTable>()
-					.Where(t => t.Name == "Crazy Frog")
+					.Where (t => t.Name == "Crazy Frog")
 					.Insert(
 						db.GetTable<TestTable2>(),
 						t => new TestTable2
@@ -143,7 +143,7 @@ namespace LinqToDBCrudDemo
 					.GetTable<TestTable>()
 					.Where(t => t.Name == "Crazy Frog")
 					.Into(db.GetTable<TestTable2>())
-						.Value(t => t.Name, t => t.Name + " II")
+						.Value(t => t.Name,      t => t.Name + " II")
 						.Value(t => t.CreatedOn, t => t.CreatedOn.Value.AddDays(1))
 					.Insert();
 			}
@@ -163,7 +163,7 @@ namespace LinqToDBCrudDemo
 				var identity = db.GetTable<TestTable>()
 					.InsertWithIdentity(() => new TestTable
 					{
-						Name = "Crazy Frog",
+						Name      = "Crazy Frog",
 						CreatedOn = Sql.CurrentTimestamp
 					});
 
@@ -186,7 +186,7 @@ namespace LinqToDBCrudDemo
 					.InsertOrUpdate(
 						() => new TestTable3
 						{
-							ID = 5,
+							ID   = 5,
 							Name = "Crazy Frog",
 						},
 						t => new TestTable3
@@ -210,7 +210,7 @@ namespace LinqToDBCrudDemo
 				db.InsertOrReplace(
 					new TestTable3
 					{
-						ID = 5,
+						ID   = 5,
 						Name = "Crazy Frog",
 					});
 			}
@@ -230,7 +230,7 @@ namespace LinqToDBCrudDemo
 				db.Update(
 					new TestTable3
 					{
-						ID = 5,
+						ID   = 5,
 						Name = "Crazy Frog",
 					});
 			}
@@ -249,7 +249,7 @@ namespace LinqToDBCrudDemo
 			{
 				db
 					.GetTable<TestTable>()
-					.Where(t => t.ID == 1)
+					.Where (t => t.ID == 1)
 					.Update(t => new TestTable
 					{
 						Name = "Crazy Frog",
@@ -293,7 +293,7 @@ namespace LinqToDBCrudDemo
 				db
 					.GetTable<TestTable>()
 					.Where(t => t.ID == 1)
-					.Set(t => t.Name, t => "Crazy Frog IV")
+					.Set(t => t.Name,      t => "Crazy Frog IV")
 					.Set(t => t.CreatedOn, t => t.CreatedOn.Value.AddHours(1))
 					.Update();
 			}
