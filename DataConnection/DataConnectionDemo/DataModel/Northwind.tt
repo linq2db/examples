@@ -1,0 +1,11 @@
+<#@ template language="C#" debug="True" hostSpecific="True"                           #>
+<#@ output extension=".generated.cs"                                                  #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\LinqToDB.SqlServer.Tools.ttinclude" #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\PluralizationService.ttinclude"     #>
+<#
+	NamespaceName = "DataConnectionDemo.DataModels";
+
+	LoadSqlServerMetadata(@"DBHost\SQLSERVER2012", "Northwind", "sa", "TestPassword");
+
+	GenerateModel();
+#>
