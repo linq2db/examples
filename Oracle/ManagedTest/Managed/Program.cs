@@ -27,12 +27,14 @@ namespace Managed
 
 			using (var db = new TestDataDB())
 			{
+				try { db.DropTable<TestTable>(); } catch (Exception) {}
+
 				var table = db.CreateTable<TestTable>();
 
 				var identity = db.GetTable<TestTable>()
 					.InsertWithIdentity(() => new TestTable
 					{
-						Name = "Crazy Frog",
+						Name      = "Crazy Frog",
 						CreatedOn = Sql.CurrentTimestamp
 					});
 
