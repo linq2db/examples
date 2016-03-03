@@ -49,7 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataModels\Northwind1.generated.cs">
+    <Compile Include="DataModels\Northwind.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Northwind.tt</DependentUpon>
@@ -86,7 +86,7 @@
     <None Include="README.md" />
     <None Include="DataModels\Northwind.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Northwind1.generated.cs</LastGenOutput>
+      <LastGenOutput>Northwind.generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
