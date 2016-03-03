@@ -2,7 +2,7 @@ Web Application
 ---------------
 
 1. Install the [linq2db](https://nuget.org/packages/linq2db/) nuget.
-2. Add WCF Service to your ASP.NET application. Call 'LinqWcfService' for instance.
+2. Add WCF Service to your ASP.NET application. Call the service 'LinqWcfService' for instance.
 3. Go to the LinqWcfService.svc.cs file and replace base interface with 'LinqToDB.ServiceModel.LinqService'.
 4. Delete the ILinqWcfService interface from your application.
 5. Add 'connectionStrings' section to your Web.config.
