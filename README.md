@@ -37,3 +37,5 @@ Linq over WCF
 -------------
 * [ASP.NET Host](https://github.com/linq2db/examples/tree/master/LinqOverWCF/ASP.NET Host).
    Get started with LINQ over WCF using ASP.NET WCF Service as a host.
+* [Windows Host](https://github.com/linq2db/examples/tree/master/LinqOverWCF/Windows Host).
+   Get started with LINQ over WCF using Windows Console application as a host.
