@@ -10,6 +10,5 @@ Web Application
 Client
 ------
 
-1. Install an apporopriate linq2db nuget.
-2. Open [LinqToDB.Templates\CopyMe.XXXX.tt.txt](https://github.com/linq2db/examples/blob/master/LinqOverWCF/ASP.NET Host/Client/LinqToDB.Templates/CopyMe.SqlServer.tt.txt) and follow the instructions inside the file.
-3. Modify your DataModel.tt file in the likeness of [Northwind.tt](https://github.com/linq2db/examples/blob/master/LinqOverWCF/ASP.NET Host/Client/Northwind.tt).
+1. Install an apporopriate linq2db nuget. The [linq2db.SqlServer](https://nuget.org/packages/linq2db.SqlServer/) is used in this example.
+2. Create a DataModel.tt file in the likeness of [Northwind.tt](https://github.com/linq2db/examples/blob/master/LinqOverWCF/ASP.NET Host/Client/Northwind.tt).

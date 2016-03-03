@@ -30,3 +30,4 @@ _ReSharper*/
 !*.exe
 !*.dll
 !*.pdb
+.vs/
