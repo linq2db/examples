@@ -5,6 +5,13 @@
 <#
 	NamespaceName = "DataModel";
 
+	// place optional configuration code here
+	// See https://linq2db.github.io/articles/Source/LinqToDB.Templates/README.html#configuring-generation-process
+
 	LoadSqlServerMetadata(@"DBHost\SQLSERVER2012", "Northwind", "sa", "TestPassword");
+
+	// Here you can customize table names, column name, column types. 
+	// See https://linq2db.github.io/articles/Source/LinqToDB.Templates/README.html#customizing-generation-process
+
 	GenerateModel();
 #>

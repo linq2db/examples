@@ -22,7 +22,7 @@ namespace DataModel
 	/// <summary>
 	/// Database       : Northwind
 	/// Data Source    : DBHost\SQLSERVER2012
-	/// Server Version : 11.00.2100
+	/// Server Version : 11.00.2218
 	/// </summary>
 	public partial class NorthwindDB : LinqToDB.Data.DataConnection
 	{
