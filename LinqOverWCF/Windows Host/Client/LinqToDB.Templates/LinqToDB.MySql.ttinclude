@@ -1,30 +1,25 @@
-<#@ include file="LinqToDB.ttinclude" #>
-<#
-	LinqToDB.DataProvider.MySql.MySqlTools.ResolveMySql(
-		typeof(MySql.Data.MySqlClient.MySqlConnection).Assembly);
-#>
+<#@ include file="LinqToDB.ttinclude" once="true" #>
+<#@ import namespace="LinqToDB"                   #>
 <#+
 LinqToDB.Data.DataConnection GetMySqlConnection(string connectionString)
 {
-	return LinqToDB.DataProvider.MySql.MySqlTools.CreateDataConnection(connectionString);
+	return LinqToDB.DataProvider.MySql.MySqlTools.CreateDataConnection(connectionString, ProviderName.MySqlConnector);
 }
 
-LinqToDB.Data.DataConnection GetMySqlConnection(string server, string database, string uid, string password)
+LinqToDB.Data.DataConnection GetMySqlConnection(string server, string database, string uid, string password, int port=3306)
 {
-	return GetMySqlConnection(string.Format(
-		"Server={0};Port=3306;Database={1};Uid={2};Pwd={3};charset=utf8;",
-		server, database, uid, password));
+	return GetMySqlConnection(string.Format("Server={0};Port={1};Database={2};Uid={3};Pwd={4};charset=utf8;", server, port, database, uid, password));
 }
 
-void LoadMySqlMetadata(string connectionString)
+public void LoadMySqlMetadata(string connectionString)
 {
-	var dataConnection = GetMySqlConnection(connectionString);
-	LoadMetadata(dataConnection);
+	using (var dataConnection = GetMySqlConnection(connectionString))
+		LoadMetadata(dataConnection);
 }
 
-void LoadMySqlMetadata(string server, string database, string uid, string password)
+public void LoadMySqlMetadata(string server, string database, string uid, string password,int port=3306)
 {
-	var dataConnection = GetMySqlConnection(server, database, uid, password);
-	LoadMetadata(dataConnection);
+	using (var dataConnection = GetMySqlConnection(server, database, uid, password,port))
+		LoadMetadata(dataConnection);
 }
 #>

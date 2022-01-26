@@ -1,8 +1,5 @@
-<#@ include file="LinqToDB.ttinclude" #>
-<#
-	LinqToDB.DataProvider.SqlCe.SqlCeTools.ResolveSqlCe(
-		typeof(System.Data.SqlServerCe.SqlCeConnection).Assembly);
-#>
+<#@ include file="LinqToDB.ttinclude" once="true" #>
+<#@ import namespace="System.IO"                  #>
 <#+
 LinqToDB.Data.DataConnection GetSqlCeConnection(string connectionString)
 {
@@ -11,18 +8,18 @@ LinqToDB.Data.DataConnection GetSqlCeConnection(string connectionString)
 
 LinqToDB.Data.DataConnection GetSqlCeConnection(string path, string database)
 {
-	return GetSqlCeConnection(string.Format("Data Source={0}", System.IO.Path.Combine(path, database)));
+	return GetSqlCeConnection(string.Format("Data Source={0}", Path.Combine(path, database)));
 }
 
-void LoadSqlCeMetadata(string connectionString)
+public void LoadSqlCeMetadata(string connectionString)
 {
-	var dataConnection = GetSqlCeConnection(connectionString);
-	LoadMetadata(dataConnection);
+	using (var dataConnection = GetSqlCeConnection(connectionString))
+		LoadMetadata(dataConnection);
 }
 
-void LoadSqlCeMetadata(string path, string database)
+public void LoadSqlCeMetadata(string path, string database)
 {
-	var dataConnection = GetSqlCeConnection(path, database);
-	LoadMetadata(dataConnection);
+	using (var dataConnection = GetSqlCeConnection(path, database))
+		LoadMetadata(dataConnection);
 }
 #>

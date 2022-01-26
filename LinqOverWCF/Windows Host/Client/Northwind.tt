@@ -6,10 +6,12 @@
 	NamespaceName        = "DataModel";
 	BaseDataContextClass = "LinqToDB.ServiceModel.ServiceModelDataContext";
 	GenerateConstructors = false;
+	GetSchemaOptions.GetProcedures = false;
 
 	Model.Usings.Add("System.ServiceModel");
 
-	LoadSqlServerMetadata(@"DBHost\SQLSERVER2012", "Northwind", "sa", "TestPassword");
+	LoadSqlServerMetadata(@"Server=.;Database=Northwind;Trusted_Connection=True");
+	//connection string with specific password: LoadSqlServerMetadata(@"DBHost\SQLSERVER2012", "Northwind", "sa", "TestPassword");
 	GenerateModel();
 #>
 

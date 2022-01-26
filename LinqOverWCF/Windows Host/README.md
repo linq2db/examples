@@ -1,12 +1,17 @@
+# How to run
+
+First of all, you need to install Northwind DB from Microsoft to your SQL Server instance.
+
 Host
 ---------------
 
-1. Install the [linq2db](https://nuget.org/packages/linq2db/) nuget.
-2. Open host. See [Northwind.tt](https://github.com/linq2db/examples/blob/master/LinqOverWCF/Windows Host/Host/Program.cs).
-3. Add 'connectionStrings' section to your Web.config.
+1. Modify 'connectionString' section into your App.config.
 
 Client
 ------
 
-1. Install an apporopriate linq2db nuget. The [linq2db.SqlServer](https://nuget.org/packages/linq2db.SqlServer/) is used in this example.
-2. Create a DataModel.tt file in the likeness of [Northwind.tt](https://github.com/linq2db/examples/blob/master/LinqOverWCF/Windows Host/Client/Northwind.tt).
+1. Modify 'connectionString' section in the beginning of your Northwind.tt file.
+2. Save the Northwind.tt file, so Northwind.generated.cs file will arise.
+
+
+After all, rebuild your solution, run Host first, and run Client.

@@ -16,6 +16,8 @@ namespace Client
 				foreach (var c in q)
 					Console.WriteLine(c.ContactName);
 			}
+
+			Console.ReadLine();
 		}
 	}
 }
