@@ -1,6 +1,6 @@
 # How to run
 
-First of all, you need to install Northwind DB from Microsoft to your SQL Server instance.
+First of all, you need to install [Northwind DB](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/sql/linq/downloading-sample-databases) from Microsoft to your SQL Server instance.
 
 Host
 ---------------
@@ -14,4 +14,4 @@ Client
 2. Save the Northwind.tt file, so Northwind.generated.cs file will arise.
 
 
-After all, rebuild your solution, run Host first, and run Client.
+After all, rebuild your solution, run Host first, then run Client.

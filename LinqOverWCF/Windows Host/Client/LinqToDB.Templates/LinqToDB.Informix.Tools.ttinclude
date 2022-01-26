@@ -1,2 +1,0 @@
-<#@ include file="LinqToDB.Tools.ttinclude"    once="true" #>
-<#@ include file="LinqToDB.Informix.ttinclude" once="true" #>

@@ -1,2 +1,0 @@
-<#@ include file="LinqToDB.Tools.ttinclude"     once="true" #>
-<#@ include file="LinqToDB.SqlServer.ttinclude" once="true" #>

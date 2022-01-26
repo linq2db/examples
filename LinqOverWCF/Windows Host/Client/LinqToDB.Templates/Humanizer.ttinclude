@@ -1,8 +1,0 @@
-<#@ assembly name="$(LinqToDBT4SharedTools)Humanizer.dll" #>
-<#@ import   namespace="Humanizer"                        #>
-<#
-	NormalizeNames = true;
-	ToPlural       = s => s.Pluralize  (inputIsKnownToBeSingular: false);
-	ToSingular     = s => s.Singularize(inputIsKnownToBePlural:   false);
-	ToValidName    = (s, r) => s.Pascalize();
-#>
