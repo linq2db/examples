@@ -7,7 +7,7 @@ namespace Client
 	{
 		static void Main(string[] args)
 		{
-			using (var db = new DataModel.NorthwindDB())
+			using (var db = new DataModels.NorthwindDB())
 			{
 				var q =
 					from c in db.Customers
@@ -16,6 +16,8 @@ namespace Client
 				foreach (var c in q)
 					Console.WriteLine(c.ContactName);
 			}
+
+			Console.ReadLine();
 		}
 	}
 }
