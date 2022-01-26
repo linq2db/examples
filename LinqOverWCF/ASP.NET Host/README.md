@@ -1,14 +1,20 @@
-Web Application
+# How to run
+
+First of all, you need to install [Northwind DB](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/sql/linq/downloading-sample-databases) from Microsoft to your SQL Server instance.
+
+WebHost
 ---------------
 
-1. Install the [linq2db](https://nuget.org/packages/linq2db/) nuget.
-2. Add WCF Service to your ASP.NET application. Call the service 'LinqWcfService' for instance.
-3. Go to the LinqWcfService.svc.cs file and replace base interface with 'LinqToDB.ServiceModel.LinqService'.
-4. Delete the ILinqWcfService interface from your application.
-5. Add 'connectionStrings' section to your Web.config.
+1. Modify 'connectionString' section into your Web.config.
 
 Client
 ------
 
-1. Install an apporopriate linq2db nuget. The [linq2db.SqlServer](https://nuget.org/packages/linq2db.SqlServer/) is used in this example.
-2. Create a DataModel.tt file in the likeness of [Northwind.tt](https://github.com/linq2db/examples/blob/master/LinqOverWCF/ASP.NET Host/Client/Northwind.tt).
+1. Modify 'connectionString' section at the end of your Northwind.tt file.
+2. Save the Northwind.tt file, so Northwind.generated.cs file will arise.
+
+
+After all:
+1. Rebuild your solution
+2. Run WebHost first, and append to the address "/LinqWcfService.svc". A page about your service information should appear.
+3. Then run Client.
